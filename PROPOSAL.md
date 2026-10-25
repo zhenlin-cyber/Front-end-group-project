@@ -1,0 +1,5 @@
+**Team Name**: Link Up
+**Team Members**: Zhen Lin, Kamilah Idris, Ajia Grant, Philmon Abraha
+**Proposal**: Link Up, a social meetup platform for spontaneous, in-person activities
+
+Link Up is a casual, community-driven event board built in React for informal activities like pickup basketball or a pottery night. Inspired loosely by Luma but designed for non-professional use, the app lets users post events by location and filter them by activity type, while RSVPs and check-ins show a live count of who is committed or already there. Posts expire after a set window, keeping the board focused on what is happening now rather than weeks ahead. Our main external API is the Google Maps API, which we chose because location is central to the experience. It lets users tag where an event is happening and browse nearby activities on a map, and its free tier fits the scope of a class project. We will use Firebase for user accounts and to store event, location and participation data, and we may add the Google Calendar API so users can save events they commit to. As a stretch goal, we would like to explore gym or venue APIs for real-time scheduling.
