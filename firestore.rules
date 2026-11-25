@@ -1,0 +1,79 @@
+rules_version = '2';
+
+// Link Up security rules. See README "Data model" for the document shapes.
+// Owner: Person 1. Ask before changing so we don't break each other's features.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMe(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function eventPath(eventId) {
+      return /databases/$(database)/documents/events/$(eventId);
+    }
+
+    // ---------- users/{uid} ----------
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isMe(uid);
+      // Owners can edit their profile, but joinedAt can never change.
+      allow update: if isMe(uid)
+        && request.resource.data.joinedAt == resource.data.joinedAt;
+      allow delete: if false;
+    }
+
+    // ---------- events/{eventId} ----------
+    match /events/{eventId} {
+      allow read: if true; // the board is public, even signed out
+      allow create: if signedIn()
+        && request.resource.data.hostId == request.auth.uid;
+      // Only the host can edit or delete, and they can't hand the event to someone else.
+      allow update: if signedIn()
+        && resource.data.hostId == request.auth.uid
+        && request.resource.data.hostId == resource.data.hostId;
+      allow delete: if signedIn()
+        && resource.data.hostId == request.auth.uid;
+    }
+
+    // ---------- rsvps/{eventId_userId} ----------
+    // Doc ID must be `${eventId}_${userId}` so each person can RSVP once per event.
+    match /rsvps/{rsvpId} {
+      allow read: if true; // live RSVP counts show on the public board
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && rsvpId == request.resource.data.eventId + '_' + request.auth.uid
+        && exists(eventPath(request.resource.data.eventId));
+      // Users can update their own RSVP (e.g. checkedIn: true) but not move it.
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.eventId == resource.data.eventId;
+      allow delete: if signedIn()
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // ---------- attendance/{eventId_userId} ----------
+    // Created only by the event's host. No record = no-show, so nothing negative is ever stored.
+    match /attendance/{attendanceId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && attendanceId == request.resource.data.eventId + '_' + request.resource.data.userId
+        && request.resource.data.hostId == request.auth.uid
+        && get(eventPath(request.resource.data.eventId)).data.hostId == request.auth.uid
+        && request.resource.data.attended == true
+        // hosts can't confirm themselves...
+        && request.resource.data.userId != request.auth.uid
+        // ...and can only confirm people who actually RSVP'd
+        && exists(/databases/$(database)/documents/rsvps/$(request.resource.data.eventId + '_' + request.resource.data.userId));
+      allow update: if false;
+      // The host can undo a mistaken confirmation.
+      allow delete: if signedIn()
+        && resource.data.hostId == request.auth.uid;
+    }
+  }
+}
