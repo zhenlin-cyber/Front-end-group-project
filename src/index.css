@@ -1,0 +1,66 @@
+/* Minimal base styles — restyle freely during the polish week. */
+:root {
+  --bg: #f7f7f5;
+  --card: #ffffff;
+  --text: #1d1d1f;
+  --muted: #6b6b70;
+  --border: #e3e3e0;
+  --accent: #e8590c;
+  --accent-text: #ffffff;
+  --radius: 12px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: inherit; text-decoration: none; }
+h1 { margin: 0.25rem 0; font-size: 1.6rem; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
+.center { text-align: center; margin-top: 3rem; }
+.muted { color: var(--muted); }
+.error { color: #c92a2a; }
+
+.navbar {
+  display: flex; align-items: center; gap: 1.5rem;
+  padding: 0.75rem 1.25rem; background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 800; font-size: 1.2rem; color: var(--accent); }
+.nav-links { display: flex; gap: 1rem; flex: 1; }
+.nav-links a { color: var(--muted); }
+.nav-links a.active { color: var(--text); font-weight: 600; }
+.nav-user { display: flex; align-items: center; gap: 0.75rem; }
+.nav-profile { display: flex; align-items: center; gap: 0.5rem; }
+
+.btn {
+  border: 1px solid var(--border); background: var(--card); color: var(--text);
+  padding: 0.5rem 1rem; border-radius: 999px; font: inherit; cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.btn:disabled { opacity: 0.6; cursor: default; }
+
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 2rem; margin: 2rem auto; max-width: 480px;
+}
+.login, .profile { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+
+.avatar { border-radius: 50%; object-fit: cover; }
+.avatar.small { width: 28px; height: 28px; }
+.avatar.large { width: 96px; height: 96px; }
+
+.stats { display: flex; gap: 2.5rem; margin: 0.5rem 0; }
+.stat { display: flex; flex-direction: column; }
+.stat strong { font-size: 1.8rem; }
+.stat span { color: var(--muted); font-size: 0.85rem; }
+
+.user-badge { display: inline-flex; align-items: center; gap: 0.4rem; }
+.tier {
+  font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.55rem;
+  border-radius: 999px; background: #eee; color: var(--muted);
+}
+.tier-regular { background: #e7f5ff; color: #1864ab; }
+.tier-local-fixture { background: #fff4e6; color: #d9480f; }
