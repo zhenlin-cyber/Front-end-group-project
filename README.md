@@ -3,6 +3,7 @@
 A casual, community-driven event board for informal activities like pickup basketball or a pottery night. Built with React (Vite), Firebase, and the Google Maps API.
 
 **Team:** Zhen Lin, Kamilah Idris, Ajia Grant, Philmon Abraha. See [PROPOSAL.md](PROPOSAL.md).
+**Figma:** https://www.figma.com/design/K6yUFWseQbNmYdYOMBtpdO/link-up?node-id=2-48&t=nfcxX2OstLiHkUgY-1 
 
 ## Running locally
 
