@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getUserStats, TIERS } from '../lib/badges'
 import { getUserProfile } from '../lib/users'
+import { Avatar, Body, Card, Label, Title } from '../components/ui'
+import TierBadge from '../components/TierBadge'
 
 export default function Profile() {
   const { uid } = useParams()
@@ -39,31 +41,29 @@ export default function Profile() {
   const nextTier = [...TIERS].reverse().find((t) => t.min > stats.attended)
 
   return (
-    <div className="card profile">
-      {profile.photoURL && (
-        <img src={profile.photoURL} alt="" className="avatar large" referrerPolicy="no-referrer" />
-      )}
-      <h1>{profile.displayName}</h1>
-      {joined && <p className="muted">Joined {joined}</p>}
+    <Card as="section" className="page-card profile">
+      <Avatar src={profile.photoURL} size={96} />
+      <Title>{profile.displayName}</Title>
+      {joined && <Body className="muted">Joined {joined}</Body>}
 
-      <span className={`tier tier-${stats.tier.toLowerCase().replace(/\s+/g, '-')}`}>{stats.tier}</span>
+      <TierBadge tier={stats.tier} />
 
       <div className="stats">
         <div className="stat">
           <strong>{stats.attended}</strong>
-          <span>events attended</span>
+          <Label as="span">events attended</Label>
         </div>
         <div className="stat">
           <strong>{stats.hosted}</strong>
-          <span>events hosted</span>
+          <Label as="span">events hosted</Label>
         </div>
       </div>
 
       {nextTier && (
-        <p className="muted">
+        <Body className="muted">
           {nextTier.min - stats.attended} more to reach <strong>{nextTier.label}</strong>
-        </p>
+        </Body>
       )}
-    </div>
+    </Card>
   )
 }

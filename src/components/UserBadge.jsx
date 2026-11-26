@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getUserStats } from '../lib/badges'
 import { getUserProfile } from '../lib/users'
+import { Avatar } from './ui'
+import TierBadge from './TierBadge'
 
-// Shows a user's name with their attendance tier, linking to their profile.
+// A person (avatar + name) with their attendance tier, linking to their profile.
+// Same look as the design system's <Person>, plus the tier pill.
 //   <UserBadge uid={rsvp.userId} />
-// Pass `name` too if you already have it, to skip a profile lookup.
-export default function UserBadge({ uid, name }) {
-  const [displayName, setDisplayName] = useState(name || '')
+// Pass `name` and `photoURL` if you already have them (e.g. from an RSVP doc)
+// to skip a profile lookup.
+export default function UserBadge({ uid, name, photoURL }) {
+  const [profile, setProfile] = useState({ name: name || '', photoURL: photoURL || null })
   const [stats, setStats] = useState(null)
 
   useEffect(() => {
@@ -17,7 +21,7 @@ export default function UserBadge({ uid, name }) {
       .catch((err) => console.error('Badge stats failed:', err))
     if (!name) {
       getUserProfile(uid)
-        .then((p) => !cancelled && setDisplayName(p?.displayName || 'Unknown user'))
+        .then((p) => !cancelled && setProfile({ name: p?.displayName || 'Unknown user', photoURL: p?.photoURL || null }))
         .catch((err) => console.error('Profile lookup failed:', err))
     }
     return () => {
@@ -26,13 +30,10 @@ export default function UserBadge({ uid, name }) {
   }, [uid, name])
 
   return (
-    <Link to={`/profile/${uid}`} className="user-badge">
-      <span>{displayName || '…'}</span>
-      {stats && (
-        <span className={`tier tier-${stats.tier.toLowerCase().replace(/\s+/g, '-')}`}>
-          {stats.tier}
-        </span>
-      )}
+    <Link to={`/profile/${uid}`} className="ui-person user-badge">
+      <Avatar src={photoURL || profile.photoURL} />
+      <span>{name || profile.name || '…'}</span>
+      {stats && <TierBadge tier={stats.tier} />}
     </Link>
   )
 }

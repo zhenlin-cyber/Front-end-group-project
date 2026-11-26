@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/authContext'
+import { Button, Person } from './ui'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
@@ -8,21 +9,24 @@ export default function Navbar() {
     <nav className="navbar">
       <Link to="/" className="brand">Link Up</Link>
       <div className="nav-links">
-        <NavLink to="/">Board</NavLink>
+        <NavLink to="/" end>Board</NavLink>
         {user && <NavLink to="/events/new">Post event</NavLink>}
         {user && <NavLink to="/my-events">My events</NavLink>}
       </div>
       <div className="nav-user">
         {user ? (
           <>
-            <Link to={`/profile/${user.uid}`} className="nav-profile">
-              {user.photoURL && <img src={user.photoURL} alt="" className="avatar small" referrerPolicy="no-referrer" />}
-              <span>{user.displayName}</span>
-            </Link>
-            <button className="btn" onClick={signOut}>Sign out</button>
+            <Person
+              uid={user.uid}
+              name={user.displayName}
+              photoURL={user.photoURL}
+              size={28}
+              className="nav-profile"
+            />
+            <Button onClick={signOut}>Sign out</Button>
           </>
         ) : (
-          <NavLink to="/login" className="btn primary">Sign in</NavLink>
+          <Button to="/login" variant="primary">Sign in</Button>
         )}
       </div>
     </nav>

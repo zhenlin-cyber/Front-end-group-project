@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/authContext'
+import { Body, Button, Card, Title } from '../components/ui'
 
 export default function Login() {
   const { user, signIn } = useAuth()
@@ -31,13 +32,13 @@ export default function Login() {
   }
 
   return (
-    <div className="card login">
-      <h1>Welcome to Link Up</h1>
-      <p className="muted">Find pickup games, pottery nights, and whatever else is happening nearby.</p>
-      <button className="btn primary" onClick={handleSignIn} disabled={busy}>
+    <Card as="section" className="page-card login">
+      <Title>Welcome to Link Up</Title>
+      <Body className="muted">Find pickup games, pottery nights, and whatever else is happening nearby.</Body>
+      <Button variant="primary" className="login-button" onClick={handleSignIn} disabled={busy}>
         {busy ? 'Signing in…' : 'Sign in with Google'}
-      </button>
-      {error && <p className="error">{error}</p>}
-    </div>
+      </Button>
+      {error && <Body className="error">{error}</Body>}
+    </Card>
   )
 }

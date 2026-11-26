@@ -1,13 +1,10 @@
-/* Minimal base styles — restyle freely during the polish week. */
+/* App-wide base and Person 1 page layout. Shared component styles live in
+   styles/ui.css and every value comes from styles/tokens.css. */
 :root {
-  --bg: #f7f7f5;
-  --card: #ffffff;
-  --text: #1d1d1f;
+  --bg: #ffffff;
+  --text: var(--color-ink);
   --muted: #6b6b70;
-  --border: #e3e3e0;
-  --accent: #e8590c;
-  --accent-text: #ffffff;
-  --radius: 12px;
+  --border: var(--color-placeholder);
   font-family: var(--font-sans);
   color: var(--text);
   background: var(--bg);
@@ -16,54 +13,59 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 a { color: inherit; text-decoration: none; }
-h1 { margin: 0.25rem 0; font-size: 1.6rem; }
 
-.container { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
-.center { text-align: center; margin-top: 3rem; }
+.container { max-width: 960px; margin: 0 auto; padding: var(--space-4) 1rem; }
+.center { text-align: center; margin-top: 3rem; font-size: var(--text-sm); }
 .muted { color: var(--muted); }
 .error { color: #c92a2a; }
 
+/* ---------- Navbar ---------- */
 .navbar {
-  display: flex; align-items: center; gap: 1.5rem;
-  padding: 0.75rem 1.25rem; background: var(--card);
-  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: var(--space-5);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg);
+  border-bottom: var(--border-width) solid var(--color-outline);
+  font-size: var(--text-sm);
 }
-.brand { font-weight: 800; font-size: 1.2rem; color: var(--accent); }
-.nav-links { display: flex; gap: 1rem; flex: 1; }
+.brand { font-weight: var(--weight-bold); font-size: 20px; color: var(--color-ink); }
+.nav-links { display: flex; gap: var(--space-4); flex: 1; }
 .nav-links a { color: var(--muted); }
-.nav-links a.active { color: var(--text); font-weight: 600; }
-.nav-user { display: flex; align-items: center; gap: 0.75rem; }
-.nav-profile { display: flex; align-items: center; gap: 0.5rem; }
-
-.btn {
-  border: 1px solid var(--border); background: var(--card); color: var(--text);
-  padding: 0.5rem 1rem; border-radius: 999px; font: inherit; cursor: pointer;
+.nav-links a:hover { color: var(--color-ink); }
+.nav-links a.active { color: var(--color-ink); font-weight: var(--weight-semibold); }
+.nav-user { display: flex; align-items: center; gap: var(--space-3); }
+@media (max-width: 600px) {
+  .navbar { flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+  .nav-links { order: 3; flex-basis: 100%; }
+  .nav-profile span { display: none; }
+  .nav-user { margin-left: auto; }
 }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-.btn:disabled { opacity: 0.6; cursor: default; }
 
-.card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 2rem; margin: 2rem auto; max-width: 480px;
+/* ---------- Centered page cards (login, profile, placeholders) ---------- */
+.page-card {
+  max-width: 480px; margin: var(--space-5) auto;
+  padding: var(--space-5) var(--space-card-x);
+  display: flex; flex-direction: column; gap: var(--space-2);
 }
-.login, .profile { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.login, .profile { align-items: center; text-align: center; }
+.login-button { margin-top: var(--space-2); }
 
-.avatar { border-radius: 50%; object-fit: cover; }
-.avatar.small { width: 28px; height: 28px; }
-.avatar.large { width: 96px; height: 96px; }
+/* ---------- Profile stats ---------- */
+.stats { display: flex; gap: var(--space-5); margin: var(--space-1) 0; }
+.stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.stat strong { font-size: var(--text-title); font-weight: var(--weight-bold); line-height: 1; }
+.stat .ui-label { font-weight: var(--weight-regular); color: var(--muted); }
 
-.stats { display: flex; gap: 2.5rem; margin: 0.5rem 0; }
-.stat { display: flex; flex-direction: column; }
-.stat strong { font-size: 1.8rem; }
-.stat span { color: var(--muted); font-size: 0.85rem; }
-
-.user-badge { display: inline-flex; align-items: center; gap: 0.4rem; }
+/* ---------- Tier badges (New / Regular / Local Fixture) ---------- */
+.user-badge { gap: var(--space-2); }
 .tier {
-  font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.55rem;
-  border-radius: 999px; background: #eee; color: var(--muted);
+  display: inline-flex; align-items: center;
+  font-size: 12px; font-weight: var(--weight-semibold); line-height: 1;
+  padding: 5px 9px; border-radius: var(--radius-control);
+  border: var(--border-width) solid var(--color-outline);
+  background: var(--color-surface); color: var(--muted);
 }
-.tier-regular { background: #e7f5ff; color: #1864ab; }
-.tier-local-fixture { background: #fff4e6; color: #d9480f; }
+.tier-regular { color: var(--color-ink); }
+.tier-local-fixture { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-ink-inverse); }
 
 /* ---------- Event details page layout (components live in styles/ui.css) ---------- */
 .event-details {
