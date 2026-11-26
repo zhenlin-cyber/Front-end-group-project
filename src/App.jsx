@@ -5,6 +5,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Placeholder from './pages/Placeholder'
+import EventDetails from './pages/EventDetails'
+import DesignSystem from './pages/DesignSystem'
 
 export default function App() {
   return (
@@ -16,7 +18,8 @@ export default function App() {
             {/* Public */}
             <Route path="/" element={<Placeholder title="Event board" owner="Persons 2 & 3" />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/events/:eventId" element={<Placeholder title="Event details" owner="Person 3" />} />
+            <Route path="/design" element={<DesignSystem />} />
+            <Route path="/events/:eventId" element={<EventDetails />} />
 
             {/* Signed-in only */}
             <Route

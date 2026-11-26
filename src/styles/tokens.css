@@ -1,0 +1,35 @@
+/* Link Up design tokens — taken from the Figma event details frame.
+   Use these instead of hardcoded values so pages stay consistent. */
+:root {
+  /* Color */
+  --color-ink: #000000;           /* primary text, primary button fill */
+  --color-ink-inverse: #ffffff;   /* text on primary button */
+  --color-icon: #1e1e1e;
+  --color-surface: #faf9f7;       /* card background */
+  --color-outline: #8f8f8f;       /* card, button and media borders */
+  --color-placeholder: #d9d9d9;   /* empty avatars, icon tiles, loading media */
+
+  /* Type */
+  --font-sans: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-sm: 14px;     /* body, labels, buttons */
+  --text-title: 32px;  /* page title */
+  --leading-body: 1.5;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Shape */
+  --radius-card: 7px;
+  --radius-control: 8px;
+  --radius-media: 49px;
+  --control-height: 34px;
+  --border-width: 1px;
+
+  /* Spacing (the frame's rhythm) */
+  --space-1: 11px;  /* between stacked lines of text */
+  --space-2: 14px;  /* label → content, list rows, avatar → name */
+  --space-3: 17px;  /* tile → text, between buttons */
+  --space-4: 22px;
+  --space-5: 34px;  /* between major blocks */
+  --space-card-x: 23px;
+}

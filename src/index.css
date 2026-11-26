@@ -8,7 +8,7 @@
   --accent: #e8590c;
   --accent-text: #ffffff;
   --radius: 12px;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
   color: var(--text);
   background: var(--bg);
 }
@@ -64,3 +64,45 @@ h1 { margin: 0.25rem 0; font-size: 1.6rem; }
 }
 .tier-regular { background: #e7f5ff; color: #1864ab; }
 .tier-local-fixture { background: #fff4e6; color: #d9480f; }
+
+/* ---------- Event details page layout (components live in styles/ui.css) ---------- */
+.event-details {
+  /* Design content is 1051px wide, wider than .container, so break out of it. */
+  width: min(1051px, calc(100vw - 2rem));
+  position: relative; left: 50%; translate: -50%;
+  color: var(--color-ink);
+}
+.ed-grid {
+  display: grid; grid-template-columns: 432px minmax(0, 539px);
+  gap: 80px; margin-top: 46px;
+}
+.ed-map { width: 432px; height: 400px; max-width: 100%; }
+.ed-location { margin-top: 35px; padding: 20px var(--space-card-x); min-height: 87px; display: flex; align-items: center; }
+.ed-location .ui-info-row { gap: 21px; }
+
+.ed-when { margin-top: var(--space-4); }
+.ed-rsvp { margin-top: var(--space-5); }
+.ed-rsvp-me { margin-top: var(--space-2); }
+.ed-rsvp-buttons { margin-top: var(--space-3); }
+.ed-btn-going { width: 270px; }
+.ed-btn-interested { width: 200px; }
+
+.ed-description { margin-top: 43px; }
+.ed-description .ui-body { margin-top: var(--space-4); }
+.ed-hosts { margin-top: 26px; }
+.ed-hosts .ui-person { margin-top: 19px; }
+.ed-rsvp + .ed-hosts { margin-top: 43px; }
+.ed-people-columns { display: grid; grid-template-columns: 294px 1fr; margin-top: 30px; }
+
+@media (max-width: 960px) {
+  .ed-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .ed-map { width: 100%; height: auto; aspect-ratio: 432 / 400; }
+  .ed-btn-going, .ed-btn-interested { flex: 1 1 140px; width: auto; }
+  .ed-people-columns { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+
+/* ---------- /design reference page ---------- */
+.ds { display: flex; flex-direction: column; gap: var(--space-4); }
+.ds-section { display: grid; grid-template-columns: 200px 1fr; gap: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+.ds-section > div { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.ds-section .ui-button-group { gap: 48px; }

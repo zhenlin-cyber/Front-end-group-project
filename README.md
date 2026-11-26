@@ -70,6 +70,25 @@ import UserBadge from '../components/UserBadge'
 
 After you create an event or an attendance record, call `clearUserStats(uid)` from `lib/badges.js` so badges refresh.
 
+## Design system
+
+Shared styles and components come from the Figma event details frame. Use them on new pages, and avoid hardcoding colors or sizes.
+
+- **Tokens:** `src/styles/tokens.css` holds the colors, type sizes, radii and spacing (`var(--color-outline)`, `var(--space-3)`, ...).
+- **Components:** `src/components/ui` has `Button`/`ButtonGroup`, `Card`, `Title`/`Label`/`Body`, `Avatar`, `Person`, `PeopleList`, `Tile`/`DateTile`, `InfoRow`, `MediaFrame` and `BackLink`. Their styles are in `src/styles/ui.css`.
+- **Reference page:** run the app and open `/design` to see every component.
+
+```jsx
+import { Button, Card, Label } from '../components/ui'
+
+<Card as="section">
+  <Label>RSVP</Label>
+  <Button variant="primary" onClick={join}>Going</Button>
+</Card>
+```
+
+Page-specific layout (widths, grid, one-off margins) stays in `src/index.css` under a page prefix (for example `.ed-*` for event details).
+
 ## Data model
 
 The security rules enforce these shapes, so writes that don't match will fail with `permission-denied`.
