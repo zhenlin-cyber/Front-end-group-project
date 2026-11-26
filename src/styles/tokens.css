@@ -8,6 +8,9 @@
   --color-surface: #faf9f7;       /* card background */
   --color-outline: #8f8f8f;       /* card, button and media borders */
   --color-placeholder: #d9d9d9;   /* empty avatars, icon tiles, loading media */
+  --color-field: #ffffff;         /* input background */
+  --color-danger: #c92a2a;        /* validation errors */
+  --color-muted: #6b6b70;         /* hints, empty states */
 
   /* Type */
   --font-sans: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -19,17 +22,21 @@
   --weight-bold: 700;
 
   /* Shape */
-  --radius-card: 7px;
+  --radius-card: 8px;
   --radius-control: 8px;
   --radius-media: 49px;
-  --control-height: 34px;
   --border-width: 1px;
 
-  /* Spacing (the frame's rhythm) */
-  --space-1: 11px;  /* between stacked lines of text */
-  --space-2: 14px;  /* label → content, list rows, avatar → name */
-  --space-3: 17px;  /* tile → text, between buttons */
-  --space-4: 22px;
-  --space-5: 34px;  /* between major blocks */
-  --space-card-x: 23px;
+  /* Spacing — 8px scale from the Figma spacing guidelines */
+  --space-1: 8px;   /* button vertical padding, extra room under card content */
+  --space-2: 16px;  /* card padding, avatar → name, between buttons, stacked text lines */
+  --space-3: 24px;  /* label → content, tile → text */
+  --space-4: 32px;  /* between blocks in a column, between side-by-side lists */
+  --space-5: 48px;
+  --space-6: 64px;  /* between page columns */
+  --space-list: 14px; /* rows in a people list */
+
+  /* Layout */
+  --page-wide: 1071px;   /* two-column pages (event details, create event) */
+  --column-main: 540px;  /* right-hand column */
 }

@@ -1,12 +1,11 @@
 import Person from './Person'
-import { Label } from './Text'
+import Section from './Section'
 
 // Labeled vertical list of people.
-//   <PeopleList title="Locked in (3/4)" people={[{ uid, name, photoURL }]} />
+//   <PeopleList title="Going (3/4)" people={[{ uid, name, photoURL }]} />
 export default function PeopleList({ title, people, emptyText = 'No one yet.', className = '' }) {
   return (
-    <section className={`ui-people-list ${className}`.trim()}>
-      <Label>{title}</Label>
+    <Section title={title} className={`ui-people-list ${className}`.trim()}>
       {people.length === 0 ? (
         <p className="ui-people-list__empty">{emptyText}</p>
       ) : (
@@ -18,6 +17,6 @@ export default function PeopleList({ title, people, emptyText = 'No one yet.', c
           ))}
         </ul>
       )}
-    </section>
+    </Section>
   )
 }

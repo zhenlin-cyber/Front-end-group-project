@@ -7,6 +7,7 @@ import Profile from './pages/Profile'
 import Placeholder from './pages/Placeholder'
 import EventDetails from './pages/EventDetails'
 import DesignSystem from './pages/DesignSystem'
+import CreateEvent from './pages/CreateEvent'
 
 export default function App() {
   return (
@@ -28,7 +29,7 @@ export default function App() {
             />
             <Route
               path="/events/new"
-              element={<ProtectedRoute><Placeholder title="Post an event" owner="Person 3" /></ProtectedRoute>}
+              element={<ProtectedRoute><CreateEvent /></ProtectedRoute>}
             />
             <Route
               path="/my-events"

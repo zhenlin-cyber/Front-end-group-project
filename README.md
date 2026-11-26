@@ -76,8 +76,8 @@ After you create an event or an attendance record, call `clearUserStats(uid)` fr
 
 Shared styles and components come from the Figma event details frame. Use them on new pages, and avoid hardcoding colors or sizes.
 
-- **Tokens:** `src/styles/tokens.css` holds the colors, type sizes, radii and spacing (`var(--color-outline)`, `var(--space-3)`, ...).
-- **Components:** `src/components/ui` has `Button`/`ButtonGroup`, `Card`, `Title`/`Label`/`Body`, `Avatar`, `Person`, `PeopleList`, `Tile`/`DateTile`, `InfoRow`, `MediaFrame` and `BackLink`. Their styles are in `src/styles/ui.css`.
+- **Tokens:** `src/styles/tokens.css` holds the colors, type sizes, radii and spacing (`var(--color-outline)`, `var(--space-3)`, ...). Spacing follows an 8px scale: 8, 16, 24, 32, 48, 64.
+- **Components:** `src/components/ui` has `Button`/`ButtonGroup`, `Card`, `Title`/`Label`/`Body`, `Section`, `Stack`, `Field`, `Input`/`Textarea`, `ChoiceChips`, `Avatar`, `Person`, `PeopleList`, `Tile`/`DateTile`, `InfoRow`, `MediaFrame` and `BackLink`. Their styles are in `src/styles/ui.css`, along with the page layout classes `ui-page-wide` and `ui-split` (left media column + 540px main column).
 - **Reference page:** run the app and open `/design` to see every component.
 
 ```jsx
@@ -102,14 +102,19 @@ The security rules enforce these shapes, so writes that don't match will fail wi
 
 **`events/{eventId}`**: auto-generated ID (`addDoc`).
 ```js
-{ title, activityType, lat, lng, locationName,
-  startsAt, endsAt, expiresAt,       // Firestore Timestamps
-  hostId }                           // must equal the creator's uid
+{ title, activityType,              // activityType: sports | experiences | nature | arts
+  lat, lng, locationName,
+  address, description, capacity,    // optional (null when not set)
+  startsAt, endsAt, expiresAt,       // Firestore Timestamps; expiresAt = endsAt
+  hostId,                            // must equal the creator's uid
+  createdAt }
 ```
 
 **`rsvps/{eventId}_{userId}`**: the doc ID **must** be `` `${eventId}_${userId}` `` (use `setDoc`, not `addDoc`). This makes RSVPs one per person per event.
 ```js
-{ eventId, userId, checkedIn: false, createdAt }
+{ eventId, userId, status,          // status: 'going' | 'interested' (missing = going)
+  displayName, photoURL,             // copied in so signed-out visitors can see who's coming
+  checkedIn: false, createdAt }
 ```
 
 **`attendance/{eventId}_{userId}`**: created **only by the event's host**, only for people who RSVP'd. No record means a no-show, so no negative data is ever stored.

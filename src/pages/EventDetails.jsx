@@ -14,12 +14,13 @@ import {
   DateTile,
   InfoRow,
   Label,
-  MediaFrame,
   PeopleList,
   Person,
-  Tile,
+  Section,
+  Stack,
   Title,
 } from '../components/ui'
+import LocationCard from '../components/LocationCard'
 
 // "3-5 PM", "11 AM-1 PM", "6:30-8 PM"
 function formatTimeRange(start, end) {
@@ -121,51 +122,42 @@ export default function EventDetails() {
       : null
 
   return (
-    <div className="event-details">
+    <div className="ui-page-wide">
       <BackLink to="/">Back to event map</BackLink>
 
-      <div className="ed-grid">
-        <div className="ed-left">
-          <MediaFrame className="ed-map">
-            {mapSrc ? (
+      <div className="ui-split">
+        <LocationCard
+          map={
+            mapSrc ? (
               <iframe title={`Map of ${event.locationName || 'event location'}`} src={mapSrc} loading="lazy" />
             ) : (
               <span className="muted">No location set</span>
-            )}
-          </MediaFrame>
+            )
+          }
+          title={event.locationName || 'Location TBD'}
+          subtitle={event.address}
+        />
 
-          <Card className="ed-location">
-            <InfoRow
-              center
-              leading={<Tile size={36} aria-hidden="true" />}
-              title={event.locationName || 'Location TBD'}
-              subtitle={event.address}
-            />
-          </Card>
-        </div>
-
-        <div className="ed-right">
+        <Stack>
           <Title>{event.title}</Title>
 
           {startsAt && (
             <InfoRow
-              className="ed-when"
               leading={<DateTile date={startsAt} />}
               title={startsAt.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
               subtitle={formatTimeRange(startsAt, endsAt)}
             />
           )}
 
-          <Card as="section" className="ed-rsvp">
+          <Card as="section">
             <Label>RSVP</Label>
             {user ? (
               <>
                 <Person
-                  className="ed-rsvp-me"
                   name={user.email ? `${user.displayName}, ${user.email}` : user.displayName}
                   photoURL={user.photoURL}
                 />
-                <ButtonGroup className="ed-rsvp-buttons">
+                <ButtonGroup fill>
                   <Button
                     variant={myStatus !== INTERESTED ? 'primary' : 'secondary'}
                     className="ed-btn-going"
@@ -177,7 +169,6 @@ export default function EventDetails() {
                   </Button>
                   <Button
                     variant={myStatus === INTERESTED ? 'primary' : 'secondary'}
-                    className="ed-btn-interested"
                     aria-pressed={myStatus === INTERESTED}
                     disabled={saving}
                     onClick={() => choose(INTERESTED)}
@@ -188,8 +179,8 @@ export default function EventDetails() {
                 {rsvpError && <p className="error">{rsvpError}</p>}
               </>
             ) : (
-              <ButtonGroup className="ed-rsvp-buttons">
-                <Button to="/login" variant="primary" className="ed-btn-going">
+              <ButtonGroup fill>
+                <Button to="/login" variant="primary">
                   Sign in to RSVP
                 </Button>
               </ButtonGroup>
@@ -197,29 +188,27 @@ export default function EventDetails() {
           </Card>
 
           {event.description && (
-            <section className="ed-section ed-description">
-              <Label>Description</Label>
+            <Section title="Description">
               <Body>{event.description}</Body>
-            </section>
+            </Section>
           )}
 
-          <section className="ed-section ed-hosts">
-            <Label>Host(s)</Label>
+          <Section title="Host(s)">
             <Person
               uid={event.hostId}
               name={hostProfile?.displayName || 'Host'}
               photoURL={hostProfile?.photoURL}
             />
-          </section>
+          </Section>
 
           <div className="ed-people-columns">
             <PeopleList
-              title={capacity != null ? `Locked in (${going.length}/${capacity})` : `Locked in (${going.length})`}
+              title={capacity != null ? `Going (${going.length}/${capacity})` : `Going (${going.length})`}
               people={going.map(toPerson)}
             />
             <PeopleList title={`Interested (${interested.length})`} people={interested.map(toPerson)} />
           </div>
-        </div>
+        </Stack>
       </div>
     </div>
   )
