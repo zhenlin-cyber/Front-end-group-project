@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/authContext'
-import { ACTIVITY_TYPES, createEvent } from '../lib/events'
+import { ACTIVITY_TYPES, createEvent, newEventId } from '../lib/events'
 import { BackLink, Button, ButtonGroup, ChoiceChips, Field, Input, Stack, Textarea, Title } from '../components/ui'
 import LocationPicker from '../components/LocationPicker'
 
@@ -78,6 +78,12 @@ export default function CreateEvent() {
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  // Set synchronously, so a double click can't start a second save before
+  // `saving` re-renders the button as disabled.
+  const savingRef = useRef(false)
+  // One ID for this form: a retry after an unclear failure reuses it, so it
+  // can't post the event twice.
+  const [eventId] = useState(newEventId)
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target ? e.target.value : e }))
 
@@ -85,15 +91,17 @@ export default function CreateEvent() {
     e.preventDefault()
     const { errors: found, event } = validate(form)
     setErrors(found)
-    if (Object.keys(found).length) return
+    if (Object.keys(found).length || savingRef.current) return
+    savingRef.current = true
     setSaving(true)
     setSubmitError('')
     try {
-      const id = await createEvent(user, event)
-      navigate(`/events/${id}`)
+      await createEvent(user, eventId, event)
+      navigate(`/events/${eventId}`)
     } catch (err) {
       console.error(err)
       setSubmitError("Couldn't post your event. Try again.")
+      savingRef.current = false
       setSaving(false)
     }
   }
