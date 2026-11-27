@@ -5,6 +5,7 @@ import LocationCard from './LocationCard'
 
 // Map you can click (or search) to choose where an event happens.
 // Calls onChange({ lat, lng, address, placeName }) whenever the pin moves.
+// placeName is the searched name, or '' when the pin was clicked or dragged.
 export default function LocationPicker({ value, onChange, error }) {
   const canvasRef = useRef(null)
   const mapRef = useRef(null)
@@ -42,13 +43,15 @@ export default function LocationPicker({ value, onChange, error }) {
     const id = startSelection()
     setSearchError('')
     setSearching(false) // any search still running is now out of date
-    placePin(latLng, { address: '' })
+    // A dropped pin has no place name, so any name from an earlier search no
+    // longer applies.
+    placePin(latLng, { address: '', placeName: '' })
     geocoderRef.current
       .geocode({ location: latLng })
       .then(({ results }) => results[0]?.formatted_address || '')
       .catch(() => '')
       .then((address) => {
-        if (isCurrent(id) && address) placePin(latLng, { address })
+        if (isCurrent(id) && address) placePin(latLng, { address, placeName: '' })
       })
   }
   // The map listeners are attached once, so they call through a ref to get

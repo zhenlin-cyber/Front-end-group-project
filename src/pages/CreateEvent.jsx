@@ -20,6 +20,9 @@ const EMPTY = {
   endTime: '',
   capacity: '',
   locationName: '',
+  // The place name last filled in from the map. If locationName still equals
+  // it, the host hasn't typed their own, so it's safe to replace.
+  autoLocationName: '',
   address: '',
   lat: null,
   lng: null,
@@ -113,14 +116,20 @@ export default function CreateEvent() {
           value={form}
           error={errors.location}
           onChange={({ lat, lng, address, placeName }) =>
-            setForm((f) => ({
-              ...f,
-              lat,
-              lng,
-              address,
-              // Fill the name from a search, but never overwrite what the host typed.
-              locationName: f.locationName || placeName || '',
-            }))
+            setForm((f) => {
+              // A name the host typed stays put. An auto-filled (or empty) one
+              // follows the pin: replaced by a new search result, or cleared when
+              // the pin moves somewhere without a name.
+              const typed = f.locationName.trim() !== '' && f.locationName !== f.autoLocationName
+              return {
+                ...f,
+                lat,
+                lng,
+                address,
+                autoLocationName: placeName,
+                locationName: typed ? f.locationName : placeName,
+              }
+            })
           }
         />
 
