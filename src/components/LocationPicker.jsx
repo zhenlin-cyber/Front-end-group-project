@@ -20,7 +20,14 @@ export default function LocationPicker({ value, onChange, error }) {
     onChangeRef.current = onChange
   })
 
-  // Place the pin and report the new location.
+  // Every click, drag or search is a new selection. Geocoding is async, so a
+  // slow lookup for an older selection can finish after a newer one; results
+  // are only applied if their selection is still the latest.
+  const selectionRef = useRef(0)
+  const startSelection = () => ++selectionRef.current
+  const isCurrent = (id) => id === selectionRef.current
+
+  // Move the pin and report the new location.
   const placePin = (latLng, details) => {
     const position = { lat: latLng.lat(), lng: latLng.lng() }
     markerRef.current.setPosition(position)
@@ -28,9 +35,27 @@ export default function LocationPicker({ value, onChange, error }) {
     mapRef.current.panTo(position)
     onChangeRef.current({ ...position, ...details })
   }
-  const placePinRef = useRef(placePin)
+
+  // Clicking the map or dragging the pin: move the pin right away, then fill
+  // in the address once the lookup returns, unless the host has moved on.
+  const selectPoint = (latLng) => {
+    const id = startSelection()
+    setSearchError('')
+    setSearching(false) // any search still running is now out of date
+    placePin(latLng, { address: '' })
+    geocoderRef.current
+      .geocode({ location: latLng })
+      .then(({ results }) => results[0]?.formatted_address || '')
+      .catch(() => '')
+      .then((address) => {
+        if (isCurrent(id) && address) placePin(latLng, { address })
+      })
+  }
+  // The map listeners are attached once, so they call through a ref to get
+  // the latest selectPoint.
+  const selectPointRef = useRef(selectPoint)
   useEffect(() => {
-    placePinRef.current = placePin
+    selectPointRef.current = selectPoint
   })
 
   useEffect(() => {
@@ -46,20 +71,12 @@ export default function LocationPicker({ value, onChange, error }) {
           clickableIcons: false,
         })
         const marker = new Marker({ map, visible: false, draggable: true })
-        const geocoder = new Geocoder()
         mapRef.current = map
         markerRef.current = marker
-        geocoderRef.current = geocoder
+        geocoderRef.current = new Geocoder()
 
-        // Clicking or dragging the pin looks up the address there.
-        const reverseGeocode = (latLng) =>
-          geocoder
-            .geocode({ location: latLng })
-            .then(({ results }) => results[0]?.formatted_address || '')
-            .catch(() => '')
-            .then((address) => placePinRef.current(latLng, { address }))
-        map.addListener('click', (e) => reverseGeocode(e.latLng))
-        marker.addListener('dragend', (e) => reverseGeocode(e.latLng))
+        map.addListener('click', (e) => selectPointRef.current(e.latLng))
+        marker.addListener('dragend', (e) => selectPointRef.current(e.latLng))
         setStatus('ready')
       })
       .catch((err) => {
@@ -73,6 +90,7 @@ export default function LocationPicker({ value, onChange, error }) {
 
   const search = async () => {
     if (!query.trim() || status !== 'ready') return
+    const id = startSelection()
     setSearching(true)
     setSearchError('')
     try {
@@ -81,6 +99,7 @@ export default function LocationPicker({ value, onChange, error }) {
         // Prefer results near where the map is looking.
         bounds: mapRef.current.getBounds() || undefined,
       })
+      if (!isCurrent(id)) return // host clicked, dragged or searched again meanwhile
       const top = results[0]
       if (!top) throw new Error('no results')
       mapRef.current.setZoom(16)
@@ -89,9 +108,9 @@ export default function LocationPicker({ value, onChange, error }) {
         placeName: top.types.includes('street_address') ? '' : query.trim(),
       })
     } catch {
-      setSearchError("Couldn't find that place. Try a full address, or click the map.")
+      if (isCurrent(id)) setSearchError("Couldn't find that place. Try a full address, or click the map.")
     } finally {
-      setSearching(false)
+      if (isCurrent(id)) setSearching(false)
     }
   }
 
