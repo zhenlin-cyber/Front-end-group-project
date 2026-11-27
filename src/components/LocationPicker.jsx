@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { DEFAULT_CENTER, importMapsLibrary } from '../lib/maps'
+import { DEFAULT_CENTER, hasMapsKey, importMapsLibrary } from '../lib/maps'
 import { Button, Field, Input } from './ui'
 import LocationCard from './LocationCard'
 
@@ -14,6 +14,7 @@ export default function LocationPicker({ value, onChange, error, disabled = fals
   const geocoderRef = useRef(null)
   const onChangeRef = useRef(onChange)
   const [status, setStatus] = useState('loading') // loading | ready | error
+  const [attempt, setAttempt] = useState(0) // bumped by "Try again" to reload the map
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState('')
@@ -95,7 +96,12 @@ export default function LocationPicker({ value, onChange, error, disabled = fals
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [attempt])
+
+  const retry = () => {
+    setStatus('loading')
+    setAttempt((n) => n + 1)
+  }
 
   useEffect(() => {
     markerRef.current?.setDraggable(!disabled)
@@ -128,8 +134,13 @@ export default function LocationPicker({ value, onChange, error, disabled = fals
   }
 
   const map =
-    status === 'error' ? (
+    status === 'error' && !hasMapsKey() ? (
       <span className="muted">Map unavailable. Set VITE_GOOGLE_MAPS_API_KEY in .env to choose a location.</span>
+    ) : status === 'error' ? (
+      <div className="location-card__error">
+        <span className="muted">The map couldn't load. Check your connection.</span>
+        <Button onClick={retry}>Try again</Button>
+      </div>
     ) : (
       <div ref={canvasRef} className="location-card__canvas" />
     )

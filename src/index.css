@@ -79,6 +79,9 @@ a { color: inherit; text-decoration: none; }
 .ed-people-columns > * { flex: 1 1 0; min-width: 0; }
 
 /* ---------- Create event ---------- */
+/* Map failed to load: message + retry, centered in the map frame. */
+.location-card__error { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); text-align: center; padding: var(--space-3); }
+
 /* The form's fieldset is the two-column grid; drop the default fieldset box. */
 .ce-form { border: 0; padding: 0; margin-inline: 0; margin-bottom: 0; min-width: 0; }
 .ce-actions { margin-top: var(--space-1); }

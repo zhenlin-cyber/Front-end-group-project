@@ -4,6 +4,10 @@
 // "Geocoding API" enabled in Google Cloud Console.
 let loading
 
+// How long to wait for the script before giving up, so a stalled request
+// shows an error (with a retry) instead of loading forever.
+const LOAD_TIMEOUT_MS = 15000
+
 function loadScript() {
   if (window.google?.maps?.importLibrary) return Promise.resolve()
   if (!loading) {
@@ -11,23 +15,32 @@ function loadScript() {
     if (!key) return Promise.reject(new Error('VITE_GOOGLE_MAPS_API_KEY is not set'))
     loading = new Promise((resolve, reject) => {
       const callback = '__linkUpMapsReady'
-      window[callback] = () => {
-        delete window[callback]
-        resolve()
-      }
       const script = document.createElement('script')
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&loading=async&callback=${callback}`
-      script.async = true
-      script.onerror = () => {
+      // Clear the shared promise so the next call starts a fresh request.
+      const fail = (message) => {
+        clearTimeout(timer)
         loading = null
         script.remove()
-        reject(new Error('Google Maps failed to load'))
+        reject(new Error(message))
       }
+      const timer = setTimeout(() => fail('Google Maps took too long to load'), LOAD_TIMEOUT_MS)
+      // If a timed-out script finishes later, this still runs; resolving an
+      // already-rejected promise does nothing, and the API is then available
+      // to the next call through the check at the top.
+      window[callback] = () => {
+        clearTimeout(timer)
+        resolve()
+      }
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&loading=async&callback=${callback}`
+      script.async = true
+      script.onerror = () => fail('Google Maps failed to load')
       document.head.appendChild(script)
     })
   }
   return loading
 }
+
+export const hasMapsKey = () => Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY)
 
 export async function importMapsLibrary(name) {
   await loadScript()
