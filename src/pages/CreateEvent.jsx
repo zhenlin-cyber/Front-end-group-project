@@ -40,12 +40,17 @@ function validate(form) {
   if (!form.endTime) errors.endTime = 'Add an end time.'
 
   // End times earlier than the start are treated as past midnight (e.g. 10 PM-1 AM).
+  // Equal times are an error, not a 24-hour event.
   let startsAt, endsAt
   if (form.date && form.startTime && form.endTime) {
     startsAt = new Date(`${form.date}T${form.startTime}`)
     endsAt = new Date(`${form.date}T${form.endTime}`)
-    if (endsAt <= startsAt) endsAt.setDate(endsAt.getDate() + 1)
-    if (endsAt <= new Date()) errors.endTime = 'This event would already be over.'
+    if (endsAt.getTime() === startsAt.getTime()) {
+      errors.endTime = 'End time must be different from the start time.'
+    } else {
+      if (endsAt < startsAt) endsAt.setDate(endsAt.getDate() + 1)
+      if (endsAt <= new Date()) errors.endTime = 'This event would already be over.'
+    }
   }
 
   let capacity = null
