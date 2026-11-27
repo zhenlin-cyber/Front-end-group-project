@@ -28,7 +28,9 @@ A casual, community-driven event board for informal activities like pickup baske
 
 ## Testing event pins
 
-Enable **Maps JavaScript API** in your billing-enabled Google Cloud project and paste a browser API key into `VITE_GOOGLE_MAPS_API_KEY` in `.env`. Allow your local origin (for example, `http://localhost:5173/*`) and any deployed app origins in the key's website restrictions. The app uses Google's demo map ID for local testing. Set `VITE_GOOGLE_MAPS_MAP_ID` to your own JavaScript map ID for deployments.
+For local testing, get a [Google Maps Demo Key](https://developers.google.com/maps/documentation/javascript/demo-key) with a personal Google account. Paste it into `VITE_GOOGLE_MAPS_API_KEY` in `.env`. The demo key has a daily quota, and the app uses Google's demo map ID by default.
+
+For a deployed build, use a browser key from a billing-enabled Google Cloud project with **Maps JavaScript API** enabled. Allow the deployed website origin in the key's website restrictions and set `VITE_GOOGLE_MAPS_MAP_ID` to your JavaScript map ID.
 
 Restart Vite after editing `.env`. Open the home page with a Firestore event that has numeric `lat` and `lng` fields and a future `expiresAt` timestamp. Select its pin to open the event details.
 
