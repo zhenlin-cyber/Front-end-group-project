@@ -22,6 +22,7 @@ export async function createEvent(host, e) {
     locationName: e.locationName,
     address: e.address || null,
     capacity: e.capacity ?? null,
+    goingCount: 0, // kept in step with RSVPs; see lib/rsvps.js
     startsAt: Timestamp.fromDate(e.startsAt),
     endsAt: Timestamp.fromDate(e.endsAt),
     expiresAt: Timestamp.fromDate(e.endsAt),

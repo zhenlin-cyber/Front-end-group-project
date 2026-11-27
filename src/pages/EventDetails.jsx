@@ -4,7 +4,7 @@ import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/authContext'
 import { getUserProfile } from '../lib/users'
-import { GOING, INTERESTED, removeRsvp, rsvpStatus, setRsvp } from '../lib/rsvps'
+import { EventFullError, GOING, INTERESTED, removeRsvp, rsvpStatus, setRsvp } from '../lib/rsvps'
 import {
   BackLink,
   Body,
@@ -99,7 +99,10 @@ export default function EventDetails() {
   const mine = user && rsvps.find((r) => r.userId === user.uid)
   const myStatus = mine ? rsvpStatus(mine) : null
   const capacity = event.capacity
-  const isFull = capacity != null && going.length >= capacity && myStatus !== GOING
+  // goingCount is the server's count (what the rules enforce); fall back to the
+  // list for events created before it existed.
+  const goingCount = event.goingCount ?? going.length
+  const isFull = capacity != null && goingCount >= capacity && myStatus !== GOING
   const hostProfile = host?.uid === hostId ? host : null
 
   const choose = async (next) => {
@@ -107,10 +110,14 @@ export default function EventDetails() {
     setRsvpError('')
     try {
       if (myStatus === next) await removeRsvp(eventId, user.uid)
-      else await setRsvp(eventId, user, next, Boolean(mine))
+      else await setRsvp(eventId, user, next)
     } catch (err) {
-      console.error(err)
-      setRsvpError("Couldn't save your RSVP. Try again.")
+      if (err instanceof EventFullError) {
+        setRsvpError('Sorry, the last spot was just taken.')
+      } else {
+        console.error(err)
+        setRsvpError("Couldn't save your RSVP. Try again.")
+      }
     } finally {
       setSaving(false)
     }

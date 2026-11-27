@@ -105,6 +105,7 @@ The security rules enforce these shapes, so writes that don't match will fail wi
 { title, activityType,              // activityType: sports | experiences | nature | arts
   lat, lng, locationName,
   address, description, capacity,    // optional (null when not set)
+  goingCount,                        // RSVPs with status 'going'; starts at 0
   startsAt, endsAt, expiresAt,       // Firestore Timestamps; expiresAt = endsAt
   hostId,                            // must equal the creator's uid
   createdAt }
