@@ -79,6 +79,8 @@ a { color: inherit; text-decoration: none; }
 .ed-people-columns > * { flex: 1 1 0; min-width: 0; }
 
 /* ---------- Create event ---------- */
+/* The form's fieldset is the two-column grid; drop the default fieldset box. */
+.ce-form { border: 0; padding: 0; margin-inline: 0; margin-bottom: 0; min-width: 0; }
 .ce-actions { margin-top: var(--space-1); }
 .ce-actions .ui-button:first-child { min-width: 320px; }
 

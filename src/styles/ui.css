@@ -92,6 +92,8 @@ a.ui-person:hover span { text-decoration: underline; }
 }
 .ui-back-link img { transform: scaleX(-1); display: block; }
 .ui-back-link:hover span { text-decoration: underline; }
+.ui-back-link--disabled { opacity: 0.6; cursor: default; }
+.ui-back-link--disabled:hover span { text-decoration: none; }
 
 /* ---------- Form fields ---------- */
 .ui-field, .ui-fieldset { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }

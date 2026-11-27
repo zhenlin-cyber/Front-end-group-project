@@ -6,7 +6,8 @@ import LocationCard from './LocationCard'
 // Map you can click (or search) to choose where an event happens.
 // Calls onChange({ lat, lng, address, placeName }) whenever the pin moves.
 // placeName is the searched name, or '' when the pin was clicked or dragged.
-export default function LocationPicker({ value, onChange, error }) {
+// While `disabled`, the map ignores clicks and the pin can't be dragged.
+export default function LocationPicker({ value, onChange, error, disabled = false }) {
   const canvasRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
@@ -40,6 +41,11 @@ export default function LocationPicker({ value, onChange, error }) {
   // Clicking the map or dragging the pin: move the pin right away, then fill
   // in the address once the lookup returns, unless the host has moved on.
   const selectPoint = (latLng) => {
+    if (disabled) {
+      // A drag can't be refused, so put the pin back where it was.
+      if (value.lat != null) markerRef.current.setPosition({ lat: value.lat, lng: value.lng })
+      return
+    }
     const id = startSelection()
     setSearchError('')
     setSearching(false) // any search still running is now out of date
@@ -91,8 +97,12 @@ export default function LocationPicker({ value, onChange, error }) {
     }
   }, [])
 
+  useEffect(() => {
+    markerRef.current?.setDraggable(!disabled)
+  }, [disabled, status])
+
   const search = async () => {
-    if (!query.trim() || status !== 'ready') return
+    if (disabled || !query.trim() || status !== 'ready') return
     const id = startSelection()
     setSearching(true)
     setSearchError('')
