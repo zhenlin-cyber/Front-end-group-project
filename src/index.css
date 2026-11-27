@@ -69,12 +69,12 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- LocationCard (event details + create event) ---------- */
 .location-card { gap: var(--space-3); }
-.location-card__map { width: 433px; height: 400px; max-width: 100%; }
+.location-card__map { width: 433px; max-width: 100%; aspect-ratio: 433 / 400; }
 .location-card__map > .location-card__canvas { width: 100%; height: 100%; }
 .location-card .ui-info-row { padding-bottom: var(--space-1); }
 
 /* ---------- Event details ---------- */
-.ed-btn-going { min-width: 320px; }
+.ed-btn-going { min-width: min(320px, 100%); }
 .ed-people-columns { display: flex; gap: var(--space-4); }
 .ed-people-columns > * { flex: 1 1 0; min-width: 0; }
 
@@ -85,10 +85,10 @@ a { color: inherit; text-decoration: none; }
 /* The form's fieldset is the two-column grid; drop the default fieldset box. */
 .ce-form { border: 0; padding: 0; margin-inline: 0; margin-bottom: 0; min-width: 0; }
 .ce-actions { margin-top: var(--space-1); }
-.ce-actions .ui-button:first-child { min-width: 320px; }
+.ce-actions .ui-button:first-child { min-width: min(320px, 100%); }
 
 @media (max-width: 960px) {
-  .location-card__map { width: 100%; height: auto; aspect-ratio: 433 / 400; }
+  .location-card__map { width: 100%; }
   .ed-btn-going, .ce-actions .ui-button:first-child { min-width: 0; }
 }
 

@@ -123,7 +123,9 @@ a.ui-person:hover span { text-decoration: underline; }
 }
 /* Media/aside column on the left, main column on the right. */
 .ui-split {
-  display: grid; grid-template-columns: auto minmax(0, var(--column-main)); align-items: start;
+  /* Both columns grow to their design widths when there's room and shrink
+     evenly when there isn't, so the page never overflows sideways. */
+  display: grid; grid-template-columns: minmax(0, auto) minmax(0, var(--column-main)); align-items: start;
   gap: var(--space-6); margin-top: var(--space-5);
 }
 @media (max-width: 960px) {
