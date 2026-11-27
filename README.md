@@ -26,6 +26,12 @@ A casual, community-driven event board for informal activities like pickup baske
 | `VITE_FIREBASE_*` | Firebase console → Project settings → Your apps → Config |
 | `VITE_GOOGLE_MAPS_API_KEY` | Google Cloud Console → APIs & Services → Credentials |
 
+## Testing event pins
+
+Enable **Maps JavaScript API** in your billing-enabled Google Cloud project and paste a browser API key into `VITE_GOOGLE_MAPS_API_KEY` in `.env`. Allow your local origin (for example, `http://localhost:5173/*`) and any deployed app origins in the key's website restrictions. The app uses Google's demo map ID for local testing. Set `VITE_GOOGLE_MAPS_MAP_ID` to your own JavaScript map ID for deployments.
+
+Restart Vite after editing `.env`. Open the home page with a Firestore event that has numeric `lat` and `lng` fields and a future `expiresAt` timestamp. Select its pin to open the event details.
+
 ## Project structure
 
 ```

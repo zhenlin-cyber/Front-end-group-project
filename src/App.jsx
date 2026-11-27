@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Placeholder from './pages/Placeholder'
+import EventBoard from './pages/EventBoard'
 import EventDetails from './pages/EventDetails'
 import DesignSystem from './pages/DesignSystem'
 
@@ -16,7 +17,7 @@ export default function App() {
         <main className="container">
           <Routes>
             {/* Public */}
-            <Route path="/" element={<Placeholder title="Event board" owner="Persons 2 & 3" />} />
+            <Route path="/" element={<EventBoard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/design" element={<DesignSystem />} />
             <Route path="/events/:eventId" element={<EventDetails />} />
