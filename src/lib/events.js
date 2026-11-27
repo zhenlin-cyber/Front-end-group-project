@@ -9,6 +9,39 @@ export const ACTIVITY_TYPES = [
   { value: 'arts', label: 'Arts' },
 ]
 
+const TYPES = new Set(ACTIVITY_TYPES.map((t) => t.value))
+const str = (v) => (typeof v === 'string' ? v : '')
+const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+const count = (v) => (Number.isInteger(v) && v >= 0 ? v : null)
+const date = (v) => (v instanceof Timestamp ? v.toDate() : null)
+
+// Turns an event snapshot into values that are safe to render. The security
+// rules check field types, but older or hand-edited events could still hold
+// anything, and one bad field shouldn't take down a public page. Text fields
+// are always strings ('' when missing), numbers are finite or null, and times
+// are Dates or null.
+export function readEvent(snap) {
+  const d = snap.data() || {}
+  const lat = num(d.lat)
+  const lng = num(d.lng)
+  const hasPoint = lat != null && lng != null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
+  return {
+    id: snap.id,
+    title: str(d.title) || 'Untitled event',
+    activityType: TYPES.has(d.activityType) ? d.activityType : null,
+    description: str(d.description),
+    lat: hasPoint ? lat : null,
+    lng: hasPoint ? lng : null,
+    locationName: str(d.locationName),
+    address: str(d.address),
+    capacity: count(d.capacity) || null,
+    goingCount: count(d.goingCount),
+    startsAt: date(d.startsAt),
+    endsAt: date(d.endsAt),
+    hostId: str(d.hostId) || null,
+  }
+}
+
 // A fresh event ID. Pick one per form, before the first submit, and pass it to
 // every createEvent attempt for that form.
 export function newEventId() {

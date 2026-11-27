@@ -49,6 +49,43 @@ service cloud.firestore {
       return after == before + delta || (delta < 0 && before == 0 && after == 0);
     }
 
+    // null, missing, or a string of at most `max` characters.
+    function optionalString(data, key, max) {
+      return data.get(key, null) == null
+        || (data[key] is string && data[key].size() <= max);
+    }
+
+    function requiredString(data, key, max) {
+      return data[key] is string && data[key].size() > 0 && data[key].size() <= max;
+    }
+
+    // Field names, types and allowed values for an event. Pages render these
+    // directly, so a wrong type here would break the event page for everyone.
+    // Lengths match the create form.
+    function validEvent(data) {
+      return data.keys().hasAll(['title', 'activityType', 'lat', 'lng', 'locationName',
+                                 'startsAt', 'endsAt', 'expiresAt', 'hostId', 'createdAt'])
+        && data.keys().hasOnly(['title', 'activityType', 'lat', 'lng', 'locationName',
+                                'startsAt', 'endsAt', 'expiresAt', 'hostId', 'createdAt',
+                                'description', 'address', 'capacity', 'goingCount'])
+        && requiredString(data, 'title', 80)
+        && data.activityType in ['sports', 'experiences', 'nature', 'arts']
+        && data.lat is number && data.lat >= -90 && data.lat <= 90
+        && data.lng is number && data.lng >= -180 && data.lng <= 180
+        && requiredString(data, 'locationName', 80)
+        && optionalString(data, 'description', 500)
+        && optionalString(data, 'address', 300)
+        && (data.get('capacity', null) == null
+            || (data.capacity is int && data.capacity >= 2 && data.capacity <= 10000))
+        && data.get('goingCount', 0) is int
+        && data.startsAt is timestamp
+        && data.endsAt is timestamp
+        && data.endsAt > data.startsAt
+        && data.expiresAt == data.endsAt
+        && data.hostId is string
+        && data.createdAt is timestamp;
+    }
+
     // ---------- users/{uid} ----------
     match /users/{uid} {
       allow read: if signedIn();
@@ -66,13 +103,17 @@ service cloud.firestore {
     match /events/{eventId} {
       allow read: if true; // the board is public, even signed out
       allow create: if signedIn()
+        && validEvent(request.resource.data)
         && request.resource.data.hostId == request.auth.uid
-        && request.resource.data.get('goingCount', 0) == 0;
+        && request.resource.data.get('goingCount', 0) == 0
+        && request.resource.data.createdAt == request.time;
       // Only the host can edit the event, can't hand it to someone else,
-      // and can't touch goingCount directly.
+      // can't touch goingCount directly, and must keep it a valid event.
       allow update: if signedIn()
         && resource.data.hostId == request.auth.uid
+        && validEvent(request.resource.data)
         && request.resource.data.hostId == resource.data.hostId
+        && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.get('goingCount', 0) == resource.data.get('goingCount', 0);
       // Anyone signed in can move goingCount, but only by exactly what their own
       // RSVP change in this same write adds or removes, and never past capacity.

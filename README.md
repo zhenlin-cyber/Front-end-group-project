@@ -100,7 +100,7 @@ The security rules enforce these shapes, so writes that don't match will fail wi
 { displayName, photoURL, joinedAt }   // joinedAt can never change
 ```
 
-**`events/{eventId}`**: auto-generated ID (`addDoc`).
+**`events/{eventId}`**: ID picked by the client before saving (see `newEventId` in `src/lib/events.js`), so retries never post twice. The security rules check every field's type and allowed values; unknown fields are rejected.
 ```js
 { title, activityType,              // activityType: sports | experiences | nature | arts
   lat, lng, locationName,

@@ -4,6 +4,7 @@ import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/authContext'
 import { getUserProfile } from '../lib/users'
+import { readEvent } from '../lib/events'
 import { EventFullError, GOING, INTERESTED, removeRsvp, rsvpStatus, setRsvp } from '../lib/rsvps'
 import {
   BackLink,
@@ -36,7 +37,13 @@ function formatTimeRange(start, end) {
 }
 
 // RSVP docs carry a copy of the name/photo so signed-out visitors can see them.
-const toPerson = (r) => ({ uid: r.userId, name: r.displayName || 'Link Up member', photoURL: r.photoURL })
+// Only strings are used, so a malformed RSVP can't break the page.
+const text = (v) => (typeof v === 'string' ? v : '')
+const toPerson = (r) => ({
+  uid: text(r.userId) || undefined,
+  name: text(r.displayName) || 'Link Up member',
+  photoURL: text(r.photoURL) || null,
+})
 
 export default function EventDetails() {
   const { eventId } = useParams()
@@ -53,7 +60,7 @@ export default function EventDetails() {
       (snap) =>
         setEventResult(
           snap.exists()
-            ? { eventId, status: 'ready', event: { id: snap.id, ...snap.data() } }
+            ? { eventId, status: 'ready', event: readEvent(snap) }
             : { eventId, status: 'not-found' },
         ),
       (err) => {
@@ -92,8 +99,7 @@ export default function EventDetails() {
   if (status === 'not-found') return <p className="center">This event doesn't exist.</p>
   if (status === 'error') return <p className="center error">Couldn't load this event.</p>
 
-  const startsAt = event.startsAt?.toDate?.()
-  const endsAt = event.endsAt?.toDate?.()
+  const { startsAt, endsAt } = event
   const going = rsvps.filter((r) => rsvpStatus(r) === GOING)
   const interested = rsvps.filter((r) => rsvpStatus(r) === INTERESTED)
   const mine = user && rsvps.find((r) => r.userId === user.uid)

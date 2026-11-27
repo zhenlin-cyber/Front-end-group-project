@@ -10,8 +10,8 @@ export default function PeopleList({ title, people, emptyText = 'No one yet.', c
         <p className="ui-people-list__empty">{emptyText}</p>
       ) : (
         <ul className="ui-people-list__items">
-          {people.map((p) => (
-            <li key={p.uid}>
+          {people.map((p, i) => (
+            <li key={p.uid ?? `person-${i}`}>
               <Person uid={p.uid} name={p.name} photoURL={p.photoURL} />
             </li>
           ))}
