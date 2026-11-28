@@ -17,6 +17,75 @@ service cloud.firestore {
       return /databases/$(database)/documents/events/$(eventId);
     }
 
+    function rsvpPath(eventId, uid) {
+      return /databases/$(database)/documents/rsvps/$(eventId + '_' + uid);
+    }
+
+    // RSVPs from before `status` existed count as going.
+    function isGoing(rsvp) {
+      return rsvp.get('status', 'going') == 'going';
+    }
+
+    function validStatus(rsvp) {
+      return rsvp.get('status', 'going') in ['going', 'interested'];
+    }
+
+    // How much the signed-in user's RSVP for this event changes the going
+    // count in this write (+1, 0 or -1), comparing before and after.
+    function myGoingDelta(eventId) {
+      let before = exists(rsvpPath(eventId, request.auth.uid))
+        && isGoing(get(rsvpPath(eventId, request.auth.uid)).data);
+      let after = existsAfter(rsvpPath(eventId, request.auth.uid))
+        && isGoing(getAfter(rsvpPath(eventId, request.auth.uid)).data);
+      return (after ? 1 : 0) - (before ? 1 : 0);
+    }
+
+    // True when the event's goingCount changes by exactly `delta` in this write.
+    // Events created before goingCount existed start at 0, so leaving one of
+    // those is allowed to keep the count at 0 instead of going negative.
+    function goingCountMoves(eventId, delta) {
+      let before = get(eventPath(eventId)).data.get('goingCount', 0);
+      let after = getAfter(eventPath(eventId)).data.get('goingCount', 0);
+      return after == before + delta || (delta < 0 && before == 0 && after == 0);
+    }
+
+    // null, missing, or a string of at most `max` characters.
+    function optionalString(data, key, max) {
+      return data.get(key, null) == null
+        || (data[key] is string && data[key].size() <= max);
+    }
+
+    function requiredString(data, key, max) {
+      return data[key] is string && data[key].size() > 0 && data[key].size() <= max;
+    }
+
+    // Field names, types and allowed values for an event. Pages render these
+    // directly, so a wrong type here would break the event page for everyone.
+    // Lengths match the create form.
+    function validEvent(data) {
+      return data.keys().hasAll(['title', 'activityType', 'lat', 'lng', 'locationName',
+                                 'startsAt', 'endsAt', 'expiresAt', 'hostId', 'createdAt'])
+        && data.keys().hasOnly(['title', 'activityType', 'lat', 'lng', 'locationName',
+                                'startsAt', 'endsAt', 'expiresAt', 'hostId', 'createdAt',
+                                'description', 'address', 'capacity', 'goingCount'])
+        && requiredString(data, 'title', 80)
+        && data.activityType in ['sports', 'experiences', 'nature', 'arts']
+        && data.lat is number && data.lat >= -90 && data.lat <= 90
+        && data.lng is number && data.lng >= -180 && data.lng <= 180
+        && requiredString(data, 'locationName', 80)
+        && optionalString(data, 'description', 500)
+        && optionalString(data, 'address', 300)
+        && (data.get('capacity', null) == null
+            || (data.capacity is int && data.capacity >= 2 && data.capacity <= 10000))
+        && data.get('goingCount', 0) is int
+        && data.startsAt is timestamp
+        && data.endsAt is timestamp
+        && data.endsAt > data.startsAt
+        && data.expiresAt == data.endsAt
+        && data.hostId is string
+        && data.createdAt is timestamp;
+    }
+
     // ---------- users/{uid} ----------
     match /users/{uid} {
       allow read: if signedIn();
@@ -28,33 +97,63 @@ service cloud.firestore {
     }
 
     // ---------- events/{eventId} ----------
+    // goingCount tracks RSVPs with status "going". It only changes in the same
+    // write as the RSVP that causes it (see rsvps below), which is what stops
+    // two people from both taking the last spot.
     match /events/{eventId} {
       allow read: if true; // the board is public, even signed out
       allow create: if signedIn()
-        && request.resource.data.hostId == request.auth.uid;
-      // Only the host can edit or delete, and they can't hand the event to someone else.
+        && validEvent(request.resource.data)
+        && request.resource.data.hostId == request.auth.uid
+        && request.resource.data.get('goingCount', 0) == 0
+        && request.resource.data.createdAt == request.time;
+      // Only the host can edit the event, can't hand it to someone else,
+      // can't touch goingCount directly, and must keep it a valid event.
       allow update: if signedIn()
         && resource.data.hostId == request.auth.uid
-        && request.resource.data.hostId == resource.data.hostId;
+        && validEvent(request.resource.data)
+        && request.resource.data.hostId == resource.data.hostId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.get('goingCount', 0) == resource.data.get('goingCount', 0);
+      // Anyone signed in can move goingCount, but only by exactly what their own
+      // RSVP change in this same write adds or removes, and never past capacity.
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['goingCount'])
+        && request.resource.data.goingCount
+             == resource.data.get('goingCount', 0) + myGoingDelta(eventId)
+        && request.resource.data.goingCount >= 0
+        && (resource.data.get('capacity', null) == null
+            || request.resource.data.goingCount <= resource.data.capacity);
       allow delete: if signedIn()
         && resource.data.hostId == request.auth.uid;
     }
 
     // ---------- rsvps/{eventId_userId} ----------
     // Doc ID must be `${eventId}_${userId}` so each person can RSVP once per event.
+    // Any change to whether someone is "going" must update the event's
+    // goingCount in the same write (the app does this in a transaction).
     match /rsvps/{rsvpId} {
       allow read: if true; // live RSVP counts show on the public board
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
         && rsvpId == request.resource.data.eventId + '_' + request.auth.uid
-        && exists(eventPath(request.resource.data.eventId));
-      // Users can update their own RSVP (e.g. checkedIn: true) but not move it.
+        && validStatus(request.resource.data)
+        && exists(eventPath(request.resource.data.eventId))
+        && goingCountMoves(request.resource.data.eventId,
+             (isGoing(request.resource.data) ? 1 : 0));
+      // Users can update their own RSVP (e.g. checkedIn, status) but not move it.
       allow update: if signedIn()
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId
-        && request.resource.data.eventId == resource.data.eventId;
+        && request.resource.data.eventId == resource.data.eventId
+        && validStatus(request.resource.data)
+        && goingCountMoves(resource.data.eventId,
+             (isGoing(request.resource.data) ? 1 : 0) - (isGoing(resource.data) ? 1 : 0));
+      // If the event is already gone there's no count to keep in step.
       allow delete: if signedIn()
-        && resource.data.userId == request.auth.uid;
+        && resource.data.userId == request.auth.uid
+        && (!exists(eventPath(resource.data.eventId))
+            || goingCountMoves(resource.data.eventId, 0 - (isGoing(resource.data) ? 1 : 0)));
     }
 
     // ---------- attendance/{eventId_userId} ----------

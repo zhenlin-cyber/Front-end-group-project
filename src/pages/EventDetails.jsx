@@ -4,7 +4,8 @@ import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/authContext'
 import { getUserProfile } from '../lib/users'
-import { GOING, INTERESTED, removeRsvp, rsvpStatus, setRsvp } from '../lib/rsvps'
+import { readEvent } from '../lib/events'
+import { EventFullError, GOING, INTERESTED, removeRsvp, rsvpStatus, setRsvp } from '../lib/rsvps'
 import {
   BackLink,
   Body,
@@ -14,12 +15,13 @@ import {
   DateTile,
   InfoRow,
   Label,
-  MediaFrame,
   PeopleList,
   Person,
-  Tile,
+  Section,
+  Stack,
   Title,
 } from '../components/ui'
+import LocationCard from '../components/LocationCard'
 
 // "3-5 PM", "11 AM-1 PM", "6:30-8 PM"
 function formatTimeRange(start, end) {
@@ -35,7 +37,13 @@ function formatTimeRange(start, end) {
 }
 
 // RSVP docs carry a copy of the name/photo so signed-out visitors can see them.
-const toPerson = (r) => ({ uid: r.userId, name: r.displayName || 'Link Up member', photoURL: r.photoURL })
+// Only strings are used, so a malformed RSVP can't break the page.
+const text = (v) => (typeof v === 'string' ? v : '')
+const toPerson = (r) => ({
+  uid: text(r.userId) || undefined,
+  name: text(r.displayName) || 'Link Up member',
+  photoURL: text(r.photoURL) || null,
+})
 
 export default function EventDetails() {
   const { eventId } = useParams()
@@ -52,7 +60,7 @@ export default function EventDetails() {
       (snap) =>
         setEventResult(
           snap.exists()
-            ? { eventId, status: 'ready', event: { id: snap.id, ...snap.data() } }
+            ? { eventId, status: 'ready', event: readEvent(snap) }
             : { eventId, status: 'not-found' },
         ),
       (err) => {
@@ -91,14 +99,16 @@ export default function EventDetails() {
   if (status === 'not-found') return <p className="center">This event doesn't exist.</p>
   if (status === 'error') return <p className="center error">Couldn't load this event.</p>
 
-  const startsAt = event.startsAt?.toDate?.()
-  const endsAt = event.endsAt?.toDate?.()
+  const { startsAt, endsAt } = event
   const going = rsvps.filter((r) => rsvpStatus(r) === GOING)
   const interested = rsvps.filter((r) => rsvpStatus(r) === INTERESTED)
   const mine = user && rsvps.find((r) => r.userId === user.uid)
   const myStatus = mine ? rsvpStatus(mine) : null
   const capacity = event.capacity
-  const isFull = capacity != null && going.length >= capacity && myStatus !== GOING
+  // goingCount is the server's count (what the rules enforce); fall back to the
+  // list for events created before it existed.
+  const goingCount = event.goingCount ?? going.length
+  const isFull = capacity != null && goingCount >= capacity && myStatus !== GOING
   const hostProfile = host?.uid === hostId ? host : null
 
   const choose = async (next) => {
@@ -106,10 +116,14 @@ export default function EventDetails() {
     setRsvpError('')
     try {
       if (myStatus === next) await removeRsvp(eventId, user.uid)
-      else await setRsvp(eventId, user, next, Boolean(mine))
+      else await setRsvp(eventId, user, next)
     } catch (err) {
-      console.error(err)
-      setRsvpError("Couldn't save your RSVP. Try again.")
+      if (err instanceof EventFullError) {
+        setRsvpError('Sorry, the last spot was just taken.')
+      } else {
+        console.error(err)
+        setRsvpError("Couldn't save your RSVP. Try again.")
+      }
     } finally {
       setSaving(false)
     }
@@ -121,51 +135,42 @@ export default function EventDetails() {
       : null
 
   return (
-    <div className="event-details">
+    <div className="ui-page-wide">
       <BackLink to="/">Back to event map</BackLink>
 
-      <div className="ed-grid">
-        <div className="ed-left">
-          <MediaFrame className="ed-map">
-            {mapSrc ? (
+      <div className="ui-split">
+        <LocationCard
+          map={
+            mapSrc ? (
               <iframe title={`Map of ${event.locationName || 'event location'}`} src={mapSrc} loading="lazy" />
             ) : (
               <span className="muted">No location set</span>
-            )}
-          </MediaFrame>
+            )
+          }
+          title={event.locationName || 'Location TBD'}
+          subtitle={event.address}
+        />
 
-          <Card className="ed-location">
-            <InfoRow
-              center
-              leading={<Tile size={36} aria-hidden="true" />}
-              title={event.locationName || 'Location TBD'}
-              subtitle={event.address}
-            />
-          </Card>
-        </div>
-
-        <div className="ed-right">
+        <Stack>
           <Title>{event.title}</Title>
 
           {startsAt && (
             <InfoRow
-              className="ed-when"
               leading={<DateTile date={startsAt} />}
               title={startsAt.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
               subtitle={formatTimeRange(startsAt, endsAt)}
             />
           )}
 
-          <Card as="section" className="ed-rsvp">
+          <Card as="section">
             <Label>RSVP</Label>
             {user ? (
               <>
                 <Person
-                  className="ed-rsvp-me"
                   name={user.email ? `${user.displayName}, ${user.email}` : user.displayName}
                   photoURL={user.photoURL}
                 />
-                <ButtonGroup className="ed-rsvp-buttons">
+                <ButtonGroup fill>
                   <Button
                     variant={myStatus !== INTERESTED ? 'primary' : 'secondary'}
                     className="ed-btn-going"
@@ -177,7 +182,6 @@ export default function EventDetails() {
                   </Button>
                   <Button
                     variant={myStatus === INTERESTED ? 'primary' : 'secondary'}
-                    className="ed-btn-interested"
                     aria-pressed={myStatus === INTERESTED}
                     disabled={saving}
                     onClick={() => choose(INTERESTED)}
@@ -188,8 +192,8 @@ export default function EventDetails() {
                 {rsvpError && <p className="error">{rsvpError}</p>}
               </>
             ) : (
-              <ButtonGroup className="ed-rsvp-buttons">
-                <Button to="/login" variant="primary" className="ed-btn-going">
+              <ButtonGroup fill>
+                <Button to="/login" variant="primary">
                   Sign in to RSVP
                 </Button>
               </ButtonGroup>
@@ -197,29 +201,27 @@ export default function EventDetails() {
           </Card>
 
           {event.description && (
-            <section className="ed-section ed-description">
-              <Label>Description</Label>
+            <Section title="Description">
               <Body>{event.description}</Body>
-            </section>
+            </Section>
           )}
 
-          <section className="ed-section ed-hosts">
-            <Label>Host(s)</Label>
+          <Section title="Host(s)">
             <Person
               uid={event.hostId}
               name={hostProfile?.displayName || 'Host'}
               photoURL={hostProfile?.photoURL}
             />
-          </section>
+          </Section>
 
           <div className="ed-people-columns">
             <PeopleList
-              title={capacity != null ? `Locked in (${going.length}/${capacity})` : `Locked in (${going.length})`}
+              title={capacity != null ? `Going (${going.length}/${capacity})` : `Going (${going.length})`}
               people={going.map(toPerson)}
             />
             <PeopleList title={`Interested (${interested.length})`} people={interested.map(toPerson)} />
           </div>
-        </div>
+        </Stack>
       </div>
     </div>
   )

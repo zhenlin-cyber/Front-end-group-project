@@ -43,7 +43,7 @@ a { color: inherit; text-decoration: none; }
 /* ---------- Centered page cards (login, profile, placeholders) ---------- */
 .page-card {
   max-width: 480px; margin: var(--space-5) auto;
-  padding: var(--space-5) var(--space-card-x);
+  padding: var(--space-5) var(--space-3);
   display: flex; flex-direction: column; gap: var(--space-2);
 }
 .login, .profile { align-items: center; text-align: center; }
@@ -67,44 +67,34 @@ a { color: inherit; text-decoration: none; }
 .tier-regular { color: var(--color-ink); }
 .tier-local-fixture { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-ink-inverse); }
 
-/* ---------- Event details page layout (components live in styles/ui.css) ---------- */
-.event-details {
-  /* Design content is 1051px wide, wider than .container, so break out of it. */
-  width: min(1051px, calc(100vw - 2rem));
-  position: relative; left: 50%; translate: -50%;
-  color: var(--color-ink);
-}
-.ed-grid {
-  display: grid; grid-template-columns: 432px minmax(0, 539px);
-  gap: 80px; margin-top: 46px;
-}
-.ed-map { width: 432px; height: 400px; max-width: 100%; }
-.ed-location { margin-top: 35px; padding: 20px var(--space-card-x); min-height: 87px; display: flex; align-items: center; }
-.ed-location .ui-info-row { gap: 21px; }
+/* ---------- LocationCard (event details + create event) ---------- */
+.location-card { gap: var(--space-3); }
+.location-card__map { width: 433px; max-width: 100%; aspect-ratio: 433 / 400; }
+.location-card__map > .location-card__canvas { width: 100%; height: 100%; }
+.location-card .ui-info-row { padding-bottom: var(--space-1); }
 
-.ed-when { margin-top: var(--space-4); }
-.ed-rsvp { margin-top: var(--space-5); }
-.ed-rsvp-me { margin-top: var(--space-2); }
-.ed-rsvp-buttons { margin-top: var(--space-3); }
-.ed-btn-going { width: 270px; }
-.ed-btn-interested { width: 200px; }
+/* ---------- Event details ---------- */
+.ed-btn-going { min-width: min(320px, 100%); }
+.ed-people-columns { display: flex; gap: var(--space-4); }
+.ed-people-columns > * { flex: 1 1 0; min-width: 0; }
 
-.ed-description { margin-top: 43px; }
-.ed-description .ui-body { margin-top: var(--space-4); }
-.ed-hosts { margin-top: 26px; }
-.ed-hosts .ui-person { margin-top: 19px; }
-.ed-rsvp + .ed-hosts { margin-top: 43px; }
-.ed-people-columns { display: grid; grid-template-columns: 294px 1fr; margin-top: 30px; }
+/* ---------- Create event ---------- */
+/* Map failed to load: message + retry, centered in the map frame. */
+.location-card__error { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); text-align: center; padding: var(--space-3); }
+
+/* The form's fieldset is the two-column grid; drop the default fieldset box. */
+.ce-form { border: 0; padding: 0; margin-inline: 0; margin-bottom: 0; min-width: 0; }
+.ce-actions { margin-top: var(--space-1); }
+.ce-actions .ui-button:first-child { min-width: min(320px, 100%); }
 
 @media (max-width: 960px) {
-  .ed-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
-  .ed-map { width: 100%; height: auto; aspect-ratio: 432 / 400; }
-  .ed-btn-going, .ed-btn-interested { flex: 1 1 140px; width: auto; }
-  .ed-people-columns { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .location-card__map { width: 100%; }
+  .ed-btn-going, .ce-actions .ui-button:first-child { min-width: 0; }
 }
 
 /* ---------- /design reference page ---------- */
-.ds { display: flex; flex-direction: column; gap: var(--space-4); }
-.ds-section { display: grid; grid-template-columns: 200px 1fr; gap: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+.ds { display: flex; flex-direction: column; gap: var(--space-3); }
+.ds-section { display: grid; grid-template-columns: 200px 1fr; gap: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border); }
 .ds-section > div { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
-.ds-section .ui-button-group { gap: 48px; }
+
+.location-search { display: flex; gap: var(--space-1); }

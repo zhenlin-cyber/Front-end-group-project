@@ -16,15 +16,16 @@
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-outline);
   border-radius: var(--radius-card);
-  padding: 17px var(--space-card-x) 21px;
+  padding: var(--space-2);
   font-size: var(--text-sm);
+  display: flex; flex-direction: column; align-items: stretch; gap: var(--space-2);
 }
 
 /* ---------- Button ---------- */
 .ui-button {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  height: var(--control-height); padding: 0 var(--space-3);
-  border: var(--border-width) solid var(--color-outline); border-radius: var(--radius-control);
+  padding: var(--space-1) var(--space-2); line-height: normal;
+  border: var(--border-width) solid var(--color-ink); border-radius: var(--radius-control);
   background: transparent; color: var(--color-ink);
   font: inherit; font-size: var(--text-sm); cursor: pointer; white-space: nowrap;
 }
@@ -33,7 +34,9 @@
 .ui-button--primary:hover:not(:disabled) { filter: none; opacity: 0.85; }
 .ui-button:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
 .ui-button:disabled { opacity: 0.6; cursor: default; }
-.ui-button-group { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.ui-button-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+/* Buttons share the row equally */
+.ui-button-group--fill > .ui-button { flex: 1 1 0; min-width: 0; }
 
 /* ---------- Avatar / Person ---------- */
 .ui-avatar {
@@ -46,13 +49,19 @@
 }
 a.ui-person:hover span { text-decoration: underline; }
 
+/* ---------- Section: label + content ---------- */
+.ui-section { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+
+/* ---------- Stack: vertical rhythm between blocks ---------- */
+.ui-stack { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-4); }
+
 /* ---------- People list ---------- */
 .ui-people-list__items {
   display: flex; flex-direction: column; align-items: flex-start;
-  gap: var(--space-2); margin: 15px 0 0; padding: 0; list-style: none;
+  gap: var(--space-list); margin: 0; padding: 0; list-style: none;
 }
 .ui-people-list__items > li { display: flex; }
-.ui-people-list__empty { margin: 15px 0 0; color: var(--muted); font-size: var(--text-sm); }
+.ui-people-list__empty { margin: 0; color: var(--color-muted); font-size: var(--text-sm); }
 
 /* ---------- Tiles ---------- */
 .ui-tile {
@@ -63,9 +72,8 @@ a.ui-person:hover span { text-decoration: underline; }
 .ui-date-tile strong { font-size: 18px; }
 
 /* ---------- Info row: tile + bold line + secondary line ---------- */
-.ui-info-row { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--text-sm); }
-.ui-info-row--center { align-items: center; }
-.ui-info-row__text { display: flex; flex-direction: column; gap: var(--space-1); }
+.ui-info-row { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); }
+.ui-info-row__text { display: flex; flex-direction: column; gap: var(--space-2); }
 .ui-info-row__text p { margin: 0; }
 .ui-info-row__title { font-weight: var(--weight-semibold); }
 
@@ -79,8 +87,47 @@ a.ui-person:hover span { text-decoration: underline; }
 
 /* ---------- Back link ---------- */
 .ui-back-link {
-  display: inline-flex; align-items: center; gap: 14.5px;
+  display: inline-flex; align-items: center; gap: var(--space-2);
   font-size: var(--text-sm); color: var(--color-ink);
 }
 .ui-back-link img { transform: scaleX(-1); display: block; }
 .ui-back-link:hover span { text-decoration: underline; }
+.ui-back-link--disabled { opacity: 0.6; cursor: default; }
+.ui-back-link--disabled:hover span { text-decoration: none; }
+
+/* ---------- Form fields ---------- */
+.ui-field, .ui-fieldset { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.ui-fieldset { border: 0; margin: 0; padding: 0; }
+.ui-fieldset > legend { padding: 0; margin-bottom: var(--space-1); }
+.ui-input {
+  width: 100%; padding: var(--space-1) var(--space-2);
+  font: inherit; font-size: var(--text-sm); line-height: normal; color: var(--color-ink);
+  background: var(--color-field);
+  border: var(--border-width) solid var(--color-outline); border-radius: var(--radius-control);
+}
+.ui-input::placeholder { color: var(--color-muted); }
+.ui-input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 1px; border-color: var(--color-ink); }
+.ui-input[aria-invalid='true'] { border-color: var(--color-danger); }
+.ui-textarea { line-height: var(--leading-body); resize: vertical; min-height: 96px; }
+.ui-field__message { margin: 0; font-size: var(--text-sm); color: var(--color-muted); }
+.ui-field__message--error { color: var(--color-danger); }
+/* Side-by-side fields (e.g. start / end time) */
+.ui-field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-2); }
+
+/* ---------- Page layout ---------- */
+/* Wide page that breaks out of the 960px .container. */
+.ui-page-wide {
+  width: min(var(--page-wide), calc(100vw - 2rem));
+  position: relative; left: 50%; translate: -50%;
+  color: var(--color-ink);
+}
+/* Media/aside column on the left, main column on the right. */
+.ui-split {
+  /* Both columns grow to their design widths when there's room and shrink
+     evenly when there isn't, so the page never overflows sideways. */
+  display: grid; grid-template-columns: minmax(0, auto) minmax(0, var(--column-main)); align-items: start;
+  gap: var(--space-6); margin-top: var(--space-5);
+}
+@media (max-width: 960px) {
+  .ui-split { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+}
